@@ -31,7 +31,7 @@
 (defn unrecognized-category-response
   [category]
   (response {:response_type "ephemeral"
-             :text (format "Sorry, '%s' is not a recognized category.")}))
+             :text (format "Sorry, '%s' is not a recognized category." category)}))
 
 (defmethod handle-slack-command "/qod"
   [{:keys [params] :as request}]
