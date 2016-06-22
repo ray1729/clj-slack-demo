@@ -203,6 +203,68 @@ Edit `chatbot/handler.clj`:
 * Try adding query parameters to the URL
 
 ---
+### Web Server 5/N: The response map
+
+```clojure
+(defn my-handler
+  [request]
+  {:body "Hello World"
+   :status 200
+   :headers {"Content-Type" "text/plain"}})
+
+(defroutes app-routes
+  (GET "/" [] my-handler)
+  (route/not-found "Not Found"))
+```
+
+---
+### Web Server 6/N: response utility
+
+```clojure-repl
+user=> (require '[ring.util.response :refer [response status charset content-type]])
+user=> (response "Hello World")
+user=> (-> (responsne "Not found") (status 404) (content-type "text/plain"))
+```
+
+---
+### Web Server 7/N: Middleware
+
+A ring handler is simply a function that receives a request map and returns a response map.
+
+Ring middleware is simply a function that modifies the behaviour of a
+handler. It can run before the handler and modify the request map, or
+after the handler and modify the response map.
+
+---
+### Web Server 8/N: Request Middleware
+
+```clojure
+(defn wrap-check-token
+  [handler]
+  (fn [request]
+    (if (= (get-in request [:params :token]) slack-token)
+      (handler request)
+      (-> (response "Invalid token")
+          (status 400)))))
+```
+
+---
+### Web Server 9/N: Response Middleware
+
+```clojure
+(defn wrap-json-response
+  [handler]
+  (fn [request]
+    (let [res (handler request)]
+      (if (coll? (:body res))
+        (-> res
+            (update :body json/generate-string)
+            (content-type "application/json")
+            (charset "UTF-8"))
+        res))))
+```
+
+---
 ## Deploying to Heroku
 
 - Install Heroku Toolbelt
