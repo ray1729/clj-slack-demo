@@ -20,9 +20,8 @@ Create a Slack command integration to provide a quote of the day.
 1. Getting started at the REPL
 2. Clojure as a REST client
 3. Posting messages to Slack
-4. A simple Clojure web server
-5. Handling Slack commands
-6. Putting the pieces together
+4. Custom Slack commands
+5. Putting the pieces together
 
 Follow along here: http://bit.ly/28W83M6
 
@@ -32,11 +31,12 @@ Who's used X before?
 Clojure
 Emacs
 
+Who has used Slack before?
+
 Which OS are people using?
 Who has programmed in a language with higher order functions?
 Get online.
 
-TODO Add bitly link to these slides.
 TODO Check out how to increase text size in slides.
 TODO Sign in sheet for slack invite email addresses
 
@@ -75,9 +75,13 @@ http://jafingerhut.github.io/cheatsheet/clojuredocs/cheatsheet-tiptip-cdocs-summ
 
 We're going to build out an application from a skeleton we made earlier.
 
-???
+```bash
+git clone https://github.com/ray1729/clj-slack-demo.git
+```
 
-TODO: Git clone URLs
+If you don't have git installed, you can download a zipfile from
+https://github.com/ray1729/clj-slack-demo/archive/master.zip
+
 
 ---
 ## Clojure as a REST client
@@ -85,14 +89,19 @@ TODO: Git clone URLs
 ---
 ### Clojure as a REST client 1/5: Dependencies
 
-Edit `project.clj` and add the following to dependencies:
+We use the `clj-http` library, a sophisticated HTTP client, and the
+`cheshire` library to parse and generate JSON strings. Check out
+`project.clj` to see how these are configured.
 
-```clojure
-[clj-http "3.1.0"]
-[cheshire "5.6.1"]
+
+```bash
+cd clj-slack-demo
+cat project.clj
 ```
 
-Restart the REPL:
+When we start a REPL in the project directory, Leiningen will
+automatically download the dependencies if we don't already have a
+local copy.
 
 ```bash
 lein repl
@@ -141,12 +150,20 @@ lein repl
 ---
 ## Exercises
 
+Open the file `src/chatbot/quotes.clj` in your favourite text editor.
+There are three functions whose function body has been left for you to
+fill in.
+
 * Write a function `list-categories` to return the list of quote of
   the day categories.
 
-* Write a function `get-quote` to return a quote of the day.
+* Write a function `get-qod` to return a quote of the day.
 
-* Modify your `get-quote` function to take an optional category. The
+* Write a function `valid-qod-category?` that takes a string,
+  `category`, and returns `true` if this is a recognized category,
+  otherwise `false`.
+
+* Modify your `get-qod` function to take an optional category. The
   function should verify that this is a valid category and retrieve a
   quote for that category.
 
@@ -158,8 +175,9 @@ lein repl
   of your `list-categories` function.
 
 * The quote returned by the quote of the day API only changes once a
-  day. Can you update your `get-quote` function to store the returned
-  quote for a given category and refresh it only once a day?
+  day. Can you update your `get-qod` function to store
+  the returned quote for a given category and refresh it only once a
+  day?
 
 ---
 ## Posting messages to Slack 1/2
@@ -178,7 +196,7 @@ Post a message to Slack:
 
 ```clojure
 (http/post webhook-url {:form-params {:text "My first message"}
-                                :content-type :json})
+                                      :content-type :json})
 ```
 
 ??? TODO
@@ -205,173 +223,32 @@ https://api.slack.com/docs/message-attachments
 ---
 ## Exercise
 
-* Use your `get-quote` function to retrieve a quote of the day, and
+* Use your `get-qod` function to retrieve a quote of the day, and
   post the resultant quote to Slack. *Hint: adding the prefix `>>>` to
   your message text formats it as a multi-line quote.*
 
----
-## Implementing a web service in Clojure
 
 ---
-### Web Server 1/9: Ring
+## Custom slack commands
 
-* Clojure’s equivalent of Ruby’s Rack, Python’s WSGI and Perl’s Plack
-* Deals with the Java Servlet API
-* Provides utilities for parsing requests and generating responses
-* Extensible through middleware
-
----
-### Web Server 2/9: Our first Ring application
-
-```bash
-lein new compojure chatbot
-cd chatbot
-lein ring server
-```
-
----
-### Web Server 3/9: Our first Ring application
-
-```clojure
-(ns chatbot.handler
-  (:require [compojure.core :refer :all]
-            [compojure.route :as route]
-            [ring.middleware.defaults :refer [wrap-defaults site-defaults]]))
-
-(defroutes app-routes
-  (GET "/" [] "Hello World")
-  (route/not-found "Not Found"))
-
-(def app
-  (wrap-defaults app-routes site-defaults))
-```
-
----
-### Web Server 4/9: The request map
-
-Update `project.clj`:
-
-```clojure
-{:dev {:dependencies [[javax.servlet/servlet-api "2.5"]
-                      [ring/ring-mock “0.3.0”]
-*                     [ring/ring-devel “1.4.0”]]}}
-```
-
-Edit `chatbot/handler.clj`:
-
-```clojure
-(ns chatbot.handler
-  (:require [compojure.core :refer :all]
-            [compojure.route :as route]
-            [ring.middleware.defaults
-                :refer [wrap-defaults site-defaults]]
-*           [ring.handler.dump :refer [handle-dump]]))
-
-(defroutes app-routes
-  (GET "/" [] "Hello World")
-* (GET "/dump/*" [] handle-dump)
-  (route/not-found "Not Found"))
-
-(def app
-  (wrap-defaults app-routes site-defaults))
-```
-
-* Restart your app and make some requests to <http://localhost:3000/dump/>
-* Try adding query parameters to the URL
-
----
-### Web Server 5/9: The response map
-
-```clojure
-(defn my-handler
-  [request]
-  {:body "Hello World"
-   :status 200
-   :headers {"Content-Type" "text/plain"}})
-
-(defroutes app-routes
-  (GET "/" [] my-handler)
-  (route/not-found "Not Found"))
-```
-
----
-### Web Server 6/9: response utility
-
-```clojure
-(require '[ring.util.response :refer [response status charset content-type]])
-(response "Hello World")
-(-> (response "Not found") (status 404) (content-type "text/plain"))
-```
-
----
-### Web Server 7/9: Middleware
-
-A ring handler is simply a function that receives a request map and returns a response map.
-
-Ring middleware is simply a function that modifies the behaviour of a
-handler. It can run before the handler and modify the request map, or
-after the handler and modify the response map.
-
----
-### Web Server 8/9: Request Middleware
-
-```clojure
-(defn wrap-check-token
-  [handler]
-  (fn [request]
-    (if (= (get-in request [:params :token]) slack-token)
-      (handler request)
-      (-> (response "Invalid token")
-          (status 400)))))
-```
-
----
-### Web Server 9/9: Response Middleware
-
-```clojure
-(defn wrap-json-response
-  [handler]
-  (fn [request]
-    (let [res (handler request)]
-      (if (coll? (:body res))
-        (-> res
-            (update :body json/generate-string)
-            (content-type "application/json")
-            (charset "UTF-8"))
-        res))))
-```
-
----
-## Exercise
-
-* In your webserver project, create a namespace `quotes.clj` and add
-your `get-quote` and `list-categories` functions to that namespace.
-
-* Update your `project.clj` to add the dependencies required by your
-quotes functions.
-
-???
-
-TODO add header s-expr for quotes.clj
-
----
-## Handling slack commands
+### Slash commands
 
 https://api.slack.com/slash-commands
 
 Messages that start with a slash / are commands and will behave
 differently from regular messages. For example, you can use the
 "topic" command to change your current channel's topic to "Hello!" by
-typing /topic Hello!. When you type /remind me in 10 minutes to drink
-a glass of water the command will set a reminder for you to drink a
+typing `/topic Hello!`. When you type `/remind me in 10 minutes to drink
+a glass of water` the command will set a reminder for you to drink a
 glass of water in 10 minutes.
 
 ---
 ### Custom commands
 
-We can configure Slack to POST a command's payload to a remote URL,
-and have the remote server return a response to the channel. The
-payload will look something like:
+We implement a custom command by configuring Slack to POST the
+command's payload to a remote URL. The remote server returns an
+ephemeral message to the user or a posts a response to the channel.
+The payload will look something like:
 
 ```
 token=gIkuvaNzQIHg97ATvDxqgjtO
@@ -399,61 +276,23 @@ To handle a Slack command, we should:
 ---
 ### Custom command example
 
-```clojure
-
-(require '[clojure.repl :refer [find-doc]]
-         '[clojure.string :as str]
-         '[ring.util.response :refer [response content-type charset status]])
-
-(def slack-token "...")
-
-(defn bad-request
-  [message]
-  (-> (response message)
-      (content-type "text/plain")
-      (status 400))
-
-(defn wrap-check-token
-  [handler]
-  (fn [request]
-    (if (= (get-in request [:params :token]) slack-token)
-      (handler request)
-      (bad-request "Invalid token"))))
-
-(defn wrap-json-response
-  [handler]
-  (fn [request]
-    (let [res (handler request)]
-      (if (coll? (:body res))
-        (-> res
-            (update :body json/generate-string)
-            (content-type "application/json")
-            (charset "UTF-8"))
-        res))))
-
-(defmulti handle-slack-command (fn [request] (get-in request [:params :command]))
-
-(defmethod handle-slack-command :default
-  [{:keys [params]}]
-  (bad-request (str "Unrecognized command: " (:command params))))
-
-(defmethod handle-slack-command "/cljdoc"
-  [{:keys [params]}]
-  (let [query (str/trim (:text params ""))]
-    (if-let [doc-str (with-out-str (find-doc query))]
-      (response {:text (str ">>> " doc-str)})
-      (response {:text (str "No documentation found for " query)}))))
-
-(def slack-handler (wrap-json-response (wrap-check-token handle-slack-command)))
-```
+A walk through the skeleton web application.
 
 ---
 ## Exercise
 
-* Modify your web application to implement handler to process a Slack
-quote of the day command.
+* Configure your own custom command in our Slack team - use a unique
+  name for the command, e.g. by prefixing with your name.
 
-??? Testing section here?
+* Extend the skeleton application to implement handler to process a
+  Slack quote of the day command.
+
+???
+
+Testing section here?
+
+We have a chicken-and-egg situation: we have to specify the web url
+for the app, but can't do this before we've created the Heroku app.
 
 ---
 ## Deploying to Heroku
@@ -462,7 +301,6 @@ quote of the day command.
 - Login and create app
 - Configure leiningen integration
 - Deploy and start app
-- Testing
 
 ---
 
@@ -496,7 +334,7 @@ Most of this has already been done for you in project.clj
 ```clojure
 :plugins [[lein-ring "0.9.7"]
           [lein-heroku "0.5.3"]]
-* :heroku {:app-name "young-thicket-18780"
+* :heroku {:app-name "vast-citadel-38177"
          :jdk-version "1.8"
          :include-files ["target/chatbot-0.1.0-SNAPSHOT-standalone.jar"]
          :process-types {"web" "java -jar target/chatbot-0.1.0-SNAPSHOT-standalone.jar"}}
@@ -510,32 +348,28 @@ TODO: Would be good to get this out of project.clj
 ---
 
 ### Deploy and start app
+
 Deploy:
 ```bash
 lein ring uberjar
 lein heroku deploy-uberjar
 ```
+
 Start:
 ```bash
 heroku ps:scale web=1 -a vast-citadel-38177
 ```
 
----
+After a few seconds, try to access the status handler:
 
-### Testing
+https://vast-citadel-38177.herokuapp.com/status
 
-```clojure
-(require '[clj-http.client :as http] '[chatbot.handler])
-
-(http/post "https://vast-citadel-38177.herokuapp.com/slack"
-           {:form-params {:command "/quote"
-                          :token chatbot.handler/slack-token}})
-```
 
 ---
 
 ## Putting the pieces together
 
-Create Slack command integration, use URL for your Heroku app:
+Create Slack command integration, use URL for your Heroku slack
+endpoint:
 
 https://vast-citadel-38177.herokuapp.com/slack
