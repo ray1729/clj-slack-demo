@@ -24,6 +24,8 @@ Create a Slack command integration to provide a quote of the day.
 5. Handling Slack commands
 6. Putting the pieces together
 
+Follow along here: http://bit.ly/28W83M6
+
 ???
 
 Who's used X before?
@@ -45,8 +47,6 @@ TODO Sign in sheet for slack invite email addresses
 Install Leiningen: http://leiningen.org/#install
 
 ```bash
-lein new hello-world
-cd hello-world
 lein repl
 ```
 
@@ -54,17 +54,30 @@ lein repl
 user=> (println "Hello World")
 ```
 
-???
-TODO in slide 'getting help', add link to the clojure cheat sheet.
-
 ---
 ## Getting help
+
+You can use functions from the `clojure.repl` namespace to get help in
+the REPL:
 
 ```clojure
 (require '[clojure.repl :refer [doc source find-doc]])
 (doc assoc)
 (source assoc)
 ```
+
+I always have the Clojure Cheatsheet open in a browser tab:
+http://jafingerhut.github.io/cheatsheet/clojuredocs/cheatsheet-tiptip-cdocs-summary.html
+
+
+---
+## Getting started with this workshop
+
+We're going to build out an application from a skeleton we made earlier.
+
+???
+
+TODO: Git clone URLs
 
 ---
 ## Clojure as a REST client
