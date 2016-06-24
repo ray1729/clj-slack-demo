@@ -1,5 +1,6 @@
 (ns chatbot.handler
   (:require [clojure.string :as str]
+            [clojure.repl :refer [find-doc]]
             [compojure.core :refer :all]
             [compojure.route :as route]
             [ring.middleware.defaults :refer [wrap-defaults api-defaults]]
@@ -41,6 +42,15 @@
       (q/valid-qod-category? arg) (quote-of-the-day-response arg)
       (empty? arg)                (quote-of-the-day-response nil)
       :else                       (unrecognized-category-response arg))))
+
+(defmethod handle-slack-command "/cljdoc"
+  [{:keys [params] :as request}]
+  (let [arg (str/lower-case (str/trim (:text params "")))]
+    (if-let [doc-str (find-doc arg)]
+      (response {:repsonse_type "in_channel"
+                 :text (str ">>> " doc-str)})
+      (response {:response_type "ephemeral"
+                 :text (str "No documentation found for " arg)}))))
 
 (defn wrap-check-token
   [handler]
