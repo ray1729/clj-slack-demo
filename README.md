@@ -1,6 +1,6 @@
 # chatbot
 
-FIXME
+Slack command integration demo - example app using some advanced concepts.
 
 ## Prerequisites
 
