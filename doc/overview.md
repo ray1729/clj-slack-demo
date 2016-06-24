@@ -19,15 +19,25 @@ Create a Slack command integration to provide a quote of the day.
 
 1. Getting started at the REPL
 2. Clojure as a REST client
-  - Interacting with the TheySaidSo API
 3. Posting messages to Slack
-  - Simple messages
-  - Message formatting and attachments
 4. A simple Clojure web server
 5. Handling Slack commands
 6. Putting the pieces together
-  - Deploying to Heroku
-  - Plumbing the bits together
+
+???
+
+Who's used X before?
+Clojure
+Emacs
+
+Which OS are people using?
+Who has programmed in a language with higher order functions?
+Get online.
+
+TODO Add bitly link to these slides.
+TODO Check out how to increase text size in slides.
+TODO Sign in sheet for slack invite email addresses
+
 
 ---
 
@@ -44,6 +54,9 @@ lein repl
 ```clojure-repl
 user=> (println "Hello World")
 ```
+
+???
+TODO in slide 'getting help', add link to the clojure cheat sheet.
 
 ---
 ## Clojure as a REST client
@@ -105,7 +118,7 @@ lein repl
 ```
 
 ---
-## Execrises
+## Exercises
 
 * Write a function `list-categories` to return the list of quote of
   the day categories.
@@ -113,8 +126,10 @@ lein repl
 * Write a function `get-quote` to return a quote of the day.
 
 * Modify your `get-quote` function to take an optional category. The
-  function should verify that this is a valid category and retireve a
+  function should verify that this is a valid category and retrieve a
   quote for that category.
+
+### Extension exercises
 
 * Calling `list-categories` every time we need to validate a category
   is an expensive operation - it requires a network request. Read
@@ -122,7 +137,7 @@ lein repl
   of your `list-categories` function.
 
 * The quote returned by the quote of the day API only changes once a
-  day. Can you update your `get-quote` function to store the retrurned
+  day. Can you update your `get-quote` function to store the returned
   quote for a given category and refresh it only once a day?
 
 ---
@@ -134,33 +149,36 @@ https://dev-summer-cb.slack.com/apps/manage/
 
 Make a note of the WebHook URL:
 
-```clojure-repl
-user=> (def webhook-url "https://hooks.slack.com/services/...")
+```clojure
+(def webhook-url "https://hooks.slack.com/services/...")
 ```
 
 Post a message to Slack:
 
-```clojure-repl
-user=> (http/post webhook-url {:form-params {:text "My first message"}
+```clojure
+(http/post webhook-url {:form-params {:text "My first message"}
                                 :content-type :json})
 ```
+
+??? TODO
+Grab my changes from this morning.
 
 ---
 ### Posting messages to Slack 2/2: Advanced message formatting
 
 https://api.slack.com/docs/message-attachments
 
-```clojure-repl
-user=> (def params
-         {:attachments
-          [{:fallback
-            "New ticket from Andrea Lee - Ticket #1943: Can't rest my password - https://groove.hq/path/to/ticket/1943",
-            :pretext "New ticket from Andrea Lee",
-            :title "Ticket #1943: Can't reset my password",
-            :title_link "https://groove.hq/path/to/ticket/1943",
-            :text "Help! I tried to reset my password but nothing happened!",
-            :color "#7CD197"}]})
-user=> (http/post webhook-url {:form-params params :content-type :json})
+```clojure
+(def params
+  {:attachments
+    [{:fallback
+      "New ticket from Andrea Lee - Ticket #1943: Can't rest my password - https://groove.hq/path/to/ticket/1943",
+      :pretext "New ticket from Andrea Lee",
+      :title "Ticket #1943: Can't reset my password",
+      :title_link "https://groove.hq/path/to/ticket/1943",
+      :text "Help! I tried to reset my password but nothing happened!",
+      :color "#7CD197"}]})
+(http/post webhook-url {:form-params params :content-type :json})
 ```
 
 ---
@@ -215,7 +233,7 @@ Update `project.clj`:
 ```clojure
 {:dev {:dependencies [[javax.servlet/servlet-api "2.5"]
                       [ring/ring-mock “0.3.0”]
-*                      [ring/ring-devel “1.4.0”]]}}
+*                     [ring/ring-devel “1.4.0”]]}}
 ```
 
 Edit `chatbot/handler.clj`:
@@ -226,18 +244,18 @@ Edit `chatbot/handler.clj`:
             [compojure.route :as route]
             [ring.middleware.defaults
                 :refer [wrap-defaults site-defaults]]
-*            [ring.handler.dump :refer [handle-dump]]))
+*           [ring.handler.dump :refer [handle-dump]]))
 
 (defroutes app-routes
   (GET "/" [] "Hello World")
-*  (GET "/dump/*" [] handle-dump)
+* (GET "/dump/*" [] handle-dump)
   (route/not-found "Not Found"))
 
 (def app
   (wrap-defaults app-routes site-defaults))
 ```
 
-* Restart your app and make some requsets to <http://localhost:3000/dump/>
+* Restart your app and make some requests to <http://localhost:3000/dump/>
 * Try adding query parameters to the URL
 
 ---
@@ -258,10 +276,10 @@ Edit `chatbot/handler.clj`:
 ---
 ### Web Server 6/N: response utility
 
-```clojure-repl
-user=> (require '[ring.util.response :refer [response status charset content-type]])
-user=> (response "Hello World")
-user=> (-> (responsne "Not found") (status 404) (content-type "text/plain"))
+```clojure
+(require '[ring.util.response :refer [response status charset content-type]])
+(response "Hello World")
+(-> (response "Not found") (status 404) (content-type "text/plain"))
 ```
 
 ---
@@ -310,6 +328,10 @@ your `get-quote` and `list-categories` functions to that namespace.
 
 * Update your `project.clj` to add the dependencies required by your
 quotes functions.
+
+???
+
+TODO add header s-expr for quotes.clj
 
 ---
 ## Handling slack commands
