@@ -9,6 +9,10 @@
 
 Create a Slack command integration to provide a quote of the day.
 
+* We'll implement a web server to handle a Slack command integration.
+  Our server will retrieve a quote of the day from a third-party REST
+  API and post the resulting quote back to the Slack channel.
+
 ---
 
 ## Overview
@@ -299,24 +303,99 @@ after the handler and modify the response map.
 ```
 
 ---
-## Handling slack commands
-
-https://api.slack.com/slash-commands
-
----
 ## Exercise
 
 * In your webserver project, create a namespace `quotes.clj` and add
-your `get-quote' and `list-categories` functions to that namespace.
+your `get-quote` and `list-categories` functions to that namespace.
 
 * Update your `project.clj` to add the dependencies required by your
 quotes functions.
 
 ---
-## Slack commnand integrations
+## Handling slack commands
 
+https://api.slack.com/slash-commands
 
+Messages that start with a slash / are commands and will behave
+differently from regular messages. For example, you can use the
+"topic" command to change your current channel's topic to "Hello!" by
+typing /topic Hello!. When you type /remind me in 10 minutes to drink
+a glass of water the command will set a reminder for you to drink a
+glass of water in 10 minutes.
 
+---
+### Custom commands
+
+We can configure Slack to POST a command's payload to a remote URL,
+and have the remote server return a response to the channel. The
+payload will look something like:
+
+```
+token=gIkuvaNzQIHg97ATvDxqgjtO
+team_id=T0001
+team_domain=example
+channel_id=C2147483705
+channel_name=test
+user_id=U2147483697
+user_name=Steve
+command=/weather
+text=94070
+response_url=https://hooks.slack.com/commands/1234/5678
+```
+
+---
+### Handling a custom command
+
+To handle a Slack command, we should:
+
+* Check the token to make sure it is a valid command
+* Check the command to make sure it is recogvized by our handler
+* Parse any arguments from the `text` field
+* Generate a response to return to Slack
+
+---
+### Custom command example
+
+```clojure
+
+(require '[clojure.repl :refer [find-doc]]
+         '[clojure.string :as str]
+         '[ring.util.response :refer [response content-type charset status]])
+
+(def api-token "...")
+
+(defn bad-request
+  [message]
+  (-> (response message)
+      (content-type "text/plain")
+      (status 400))
+
+(defn cljdoc-handler
+  [request]
+  (if-not (= api-token (get-in request [:params :token]))
+    (bad-request "Invalid token")
+    (if-not (= "/cljdoc" (get-in request [:params :command]))
+      (bad-request "Invalid command")
+      (let [query (str/trim (get-in request [:params :text] ""))]
+        (if (empty? query)
+          (bad-request "No query")
+          (let [doc (with-out-str (clojure.repl/find-doc query))]
+            (if (nil? doc)
+              (bad-request (str "No documentation found for " query))
+              (-> (response (json/generate-string {:text doc}))
+                  (content-type "application/json")
+                  (charset "UTF-8")))))))))
+```
+
+??? We need a simpler example. How much to spoon-feed?
+
+---
+## Exercise
+
+* Modify your web application to implement handler to process a Slack
+quote of the day command.
+
+??? Testing section here?
 
 ---
 ## Deploying to Heroku
