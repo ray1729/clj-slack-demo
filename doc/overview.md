@@ -5,17 +5,19 @@
 
 ---
 
+## Objective
+
+Create a Slack command integration to provide a quote of the day.
+
+---
+
 ## Overview
 
 * Getting started at the REPL
 * Clojure as a REST client
-  * Interacting with the TheySaidSo API
 * Posting messages to Slack
-  * Simple messages
-  * Message formatting and attachments
 * A simple Clojure web server
 * Handling Slack commands
-  * https://api.slack.com/slash-commands
 * Deploying to Heroku
 * Putting the pieces together
 
@@ -95,6 +97,27 @@ user=> (http/get "http://quotes.rest/qod.json"
 ```
 
 ---
+## Execrises
+
+* Write a function `list-categories` to return the list of quote of
+  the day categories.
+
+* Write a function `get-quote` to return a quote of the day.
+
+* Modify your `get-quote` function to take an optional category. The
+  function should verify that this is a valid category and retireve a
+  quote for that category.
+
+* Calling `list-categories` every time we need to validate a category
+  is an expensive operation - it requires a network request. Read
+  about Clojure's `memoize` function and implement a memoized version
+  of your `list-categories` function.
+
+* The quote returned by the quote of the day API only changes once a
+  day. Can you update your `get-quote` function to store the retrurned
+  quote for a given category and refresh it only once a day?
+
+---
 ## Posting messages to Slack 1/2
 
 Configure an incoming WebHook:
@@ -131,6 +154,13 @@ user=> (def params
             :color "#7CD197"}]})
 user=> (http/post webhook-url {:form-params params :content-type :json})
 ```
+
+---
+## Exercise
+
+* Use your `get-quote` function to retrieve a quote of the day, and
+  post the resultant quote to Slack. *Hint: adding the prefix `>>>` to
+  your message text formats it as a multi-line quote.*
 
 ---
 ## Implementing a web service in Clojure
@@ -263,6 +293,21 @@ after the handler and modify the response map.
             (charset "UTF-8"))
         res))))
 ```
+
+---
+## Exercise
+
+* In your webserver project, create a namespace `quotes.clj` and add
+your `get-quote' and `list-categories` functions to that namespace.
+
+* Update your `project.clj` to add the dependencies required by your
+quotes functions.
+
+---
+## Slack commnand integrations
+
+
+
 
 ---
 ## Deploying to Heroku
