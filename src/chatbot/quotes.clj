@@ -16,9 +16,9 @@
   ;; XXX FIX ME
   )
 
-(defn get-quote-of-the-day
+(defn get-qod
   ([]
-   (get-quote-of-the-day nil))
+   (get-qod nil))
   ([category]
    ;; XXX FIX ME
    ))
