@@ -7,17 +7,17 @@
 
 ## Overview
 
-* Getting started at the REPL
-* Clojure as a REST client
-  * Interacting with the TheySaidSo API
-* Posting messages to Slack
-  * Simple messages
-  * Message formatting and attachments
-* A simple Clojure web server
-* Handling Slack commands
-  * https://api.slack.com/slash-commands
-* Deploying to Heroku
-* Putting the pieces together
+1. Getting started at the REPL
+2. Clojure as a REST client
+  - Interacting with the TheySaidSo API
+3. Posting messages to Slack
+  - Simple messages
+  - Message formatting and attachments
+4.  A simple Clojure web server
+5. Handling Slack commands
+6. Putting the pieces together
+  - Deploying to Heroku
+  - Plumbing the bits together
 
 ---
 
@@ -57,41 +57,41 @@ lein repl
 ---
 ### Clojure as a REST client 2/5: Our first request
 
-```clojure-repl
-user=> (require '[clj-http.client :as http] '[clojure.pprint :refer [pprint]])
-user=> (def response (http/get "http://quotes.rest/qod.json"))
-user=> (pprint response)
+```clojure
+(require '[clj-http.client :as http] '[clojure.pprint :refer [pprint]])
+(def response (http/get "http://quotes.rest/qod.json"))
+(pprint response)
 ```
 
 ---
 
 ### Clojure as a REST client 3/5: Parsing the body
 
-```clojure-repl
-user=> (def response (http/get "http://quotes.rest/qod.json" {:as :json}))
-user=> (pprint response)
-user=> (get-in response [:body :contents :quotes 0 :quote])
+```clojure
+(def response (http/get "http://quotes.rest/qod.json" {:as :json}))
+(pprint response)
+(get-in response [:body :contents :quotes 0 :quote])
 ```
 
 ---
 ### Clojure as a REST client 4/5: Query parameters
 
-```clojure-repl
-user=> (def categories (http/get "http://quotes.rest/qod/categories.json" {:as :json}))
-user=> (get-in categories [:body :contents :categories])
-user=> (pprint (http/get "http://quotes.rest/qod.json"
-                          {:as :json :query-params {:category "art"}}))
+```clojure
+(def categories (http/get "http://quotes.rest/qod/categories.json" {:as :json}))
+(get-in categories [:body :contents :categories])
+(pprint (http/get "http://quotes.rest/qod.json"
+                  {:as :json :query-params {:category "art"}}))
 ```
 
 ---
 ### Clojure as a REST client 5/5: Setting request headers
 
-```clojure-repl
-user=> (def api-key "h7GmOyL2jnVBjDgNyoaEDAeF")
-user=> (http/get "http://quotes.rest/qod.json"
-                 {:as :json
-                  :query-params {:category "life"}
-                  :headers {"X-Theysaidso-API-Secret" api-key}})
+```clojure
+(def api-key "h7GmOyL2jnVBjDgNyoaEDAeF")
+(http/get "http://quotes.rest/qod.json"
+          {:as :json
+           :query-params {:category "life"}
+           :headers {"X-Theysaidso-API-Secret" api-key}})
 ```
 
 ---
@@ -262,7 +262,12 @@ after the handler and modify the response map.
             (content-type "application/json")
             (charset "UTF-8"))
         res))))
-```
+		```
+
+---
+## Handling slack commands
+
+https://api.slack.com/slash-commands
 
 ---
 ## Deploying to Heroku
