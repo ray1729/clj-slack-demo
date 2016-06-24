@@ -38,7 +38,6 @@ TODO Add bitly link to these slides.
 TODO Check out how to increase text size in slides.
 TODO Sign in sheet for slack invite email addresses
 
-
 ---
 
 ## Getting started at the REPL
@@ -57,6 +56,15 @@ user=> (println "Hello World")
 
 ???
 TODO in slide 'getting help', add link to the clojure cheat sheet.
+
+---
+## Getting help
+
+```clojure
+(require '[clojure.repl :refer [doc source find-doc]])
+(doc assoc)
+(source assoc)
+```
 
 ---
 ## Clojure as a REST client
@@ -192,7 +200,7 @@ https://api.slack.com/docs/message-attachments
 ## Implementing a web service in Clojure
 
 ---
-### Web Server 1/N: Ring
+### Web Server 1/9: Ring
 
 * Clojure’s equivalent of Ruby’s Rack, Python’s WSGI and Perl’s Plack
 * Deals with the Java Servlet API
@@ -200,7 +208,7 @@ https://api.slack.com/docs/message-attachments
 * Extensible through middleware
 
 ---
-### Web Server 2/N: Our first Ring application
+### Web Server 2/9: Our first Ring application
 
 ```bash
 lein new compojure chatbot
@@ -209,7 +217,7 @@ lein ring server
 ```
 
 ---
-### Web Server 3/N: Our first Ring application
+### Web Server 3/9: Our first Ring application
 
 ```clojure
 (ns chatbot.handler
@@ -226,7 +234,7 @@ lein ring server
 ```
 
 ---
-### Web Server 4/N: The request map
+### Web Server 4/9: The request map
 
 Update `project.clj`:
 
@@ -259,7 +267,7 @@ Edit `chatbot/handler.clj`:
 * Try adding query parameters to the URL
 
 ---
-### Web Server 5/N: The response map
+### Web Server 5/9: The response map
 
 ```clojure
 (defn my-handler
@@ -274,7 +282,7 @@ Edit `chatbot/handler.clj`:
 ```
 
 ---
-### Web Server 6/N: response utility
+### Web Server 6/9: response utility
 
 ```clojure
 (require '[ring.util.response :refer [response status charset content-type]])
@@ -283,7 +291,7 @@ Edit `chatbot/handler.clj`:
 ```
 
 ---
-### Web Server 7/N: Middleware
+### Web Server 7/9: Middleware
 
 A ring handler is simply a function that receives a request map and returns a response map.
 
@@ -292,7 +300,7 @@ handler. It can run before the handler and modify the request map, or
 after the handler and modify the response map.
 
 ---
-### Web Server 8/N: Request Middleware
+### Web Server 8/9: Request Middleware
 
 ```clojure
 (defn wrap-check-token
@@ -305,7 +313,7 @@ after the handler and modify the response map.
 ```
 
 ---
-### Web Server 9/N: Response Middleware
+### Web Server 9/9: Response Middleware
 
 ```clojure
 (defn wrap-json-response
@@ -384,7 +392,7 @@ To handle a Slack command, we should:
          '[clojure.string :as str]
          '[ring.util.response :refer [response content-type charset status]])
 
-(def api-token "...")
+(def slack-token "...")
 
 (defn bad-request
   [message]
@@ -392,24 +400,39 @@ To handle a Slack command, we should:
       (content-type "text/plain")
       (status 400))
 
-(defn cljdoc-handler
-  [request]
-  (if-not (= api-token (get-in request [:params :token]))
-    (bad-request "Invalid token")
-    (if-not (= "/cljdoc" (get-in request [:params :command]))
-      (bad-request "Invalid command")
-      (let [query (str/trim (get-in request [:params :text] ""))]
-        (if (empty? query)
-          (bad-request "No query")
-          (let [doc (with-out-str (clojure.repl/find-doc query))]
-            (if (nil? doc)
-              (bad-request (str "No documentation found for " query))
-              (-> (response (json/generate-string {:text doc}))
-                  (content-type "application/json")
-                  (charset "UTF-8")))))))))
-```
+(defn wrap-check-token
+  [handler]
+  (fn [request]
+    (if (= (get-in request [:params :token]) slack-token)
+      (handler request)
+      (bad-request "Invalid token"))))
 
-??? We need a simpler example. How much to spoon-feed?
+(defn wrap-json-response
+  [handler]
+  (fn [request]
+    (let [res (handler request)]
+      (if (coll? (:body res))
+        (-> res
+            (update :body json/generate-string)
+            (content-type "application/json")
+            (charset "UTF-8"))
+        res))))
+
+(defmulti handle-slack-command (fn [request] (get-in request [:params :command]))
+
+(defmethod handle-slack-command :default
+  [{:keys [params]}]
+  (bad-request (str "Unrecognized command: " (:command params))))
+
+(defmethod handle-slack-command "/cljdoc"
+  [{:keys [params]}]
+  (let [query (str/trim (:text params ""))]
+    (if-let [doc-str (with-out-str (find-doc query))]
+      (response {:text (str ">>> " doc-str)})
+      (response {:text (str "No documentation found for " query)}))))
+
+(def slack-handler (wrap-json-response (wrap-check-token handle-slack-command)))
+```
 
 ---
 ## Exercise
