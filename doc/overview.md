@@ -180,7 +180,10 @@ fill in.
   day?
 
 ---
-## Posting messages to Slack 1/2
+## Posting messages to Slack
+
+---
+### Posting messages to Slack 1/2
 
 Configure an incoming WebHook:
 
@@ -199,8 +202,9 @@ Post a message to Slack:
                                       :content-type :json})
 ```
 
-??? TODO
-Grab my changes from this morning.
+???
+
+TODO Grab my changes from this morning.
 
 ---
 ### Posting messages to Slack 2/2: Advanced message formatting
@@ -231,6 +235,7 @@ https://api.slack.com/docs/message-attachments
 ---
 ## Custom slack commands
 
+---
 ### Slash commands
 
 https://api.slack.com/slash-commands
