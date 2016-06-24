@@ -1,6 +1,6 @@
 # chatbot
 
-FIXME
+Slack command integration demo app skeleton.
 
 ## Prerequisites
 
