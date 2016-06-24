@@ -286,18 +286,37 @@ A walk through the skeleton web application.
 ---
 ## Exercise
 
-* Configure your own custom command in our Slack team - use a unique
-  name for the command, e.g. by prefixing with your name.
-
-* Extend the skeleton application to implement handler to process a
+* Extend the skeleton application to implement a handler to process a
   Slack quote of the day command.
 
-???
+* Try it out by posting a request to your app. You can do this from
+  the REPL:
 
-Testing section here?
+```clojure
+(http/post "http://localhost:3000/slack"
+  {:form-params {:token "gIkuvaNzQIHg97ATvDxqgjtO""
+                 :command "/qod"
+                 :text "life"}})
+```
 
-We have a chicken-and-egg situation: we have to specify the web url
-for the app, but can't do this before we've created the Heroku app.
+Note that `token` above should match the `slack-token` defined
+`handler.clj` and `command` should match the command name you
+implemented. What happens if you pass an invalid token? an unsupported
+command?
+
+### Extension exercises
+
+* Extend your command handler to parse the optional `:text` parameter.
+
+  * If the value is `list-categories`, return the list of available
+    categories instead of a quote. If an
+
+  * If the value is a valid categroy, return a quote in that category.
+
+  * If the value is empty, return a random quote as before.
+
+  * Otherwise, return an ephemeral message to the user who issued the
+    command.
 
 ---
 ## Deploying to Heroku
@@ -337,12 +356,12 @@ Git remote heroku added
 Most of this has already been done for you in project.clj
 
 ```clojure
-:plugins [[lein-ring "0.9.7"]
+ :plugins [[lein-ring "0.9.7"]
           [lein-heroku "0.5.3"]]
 * :heroku {:app-name "vast-citadel-38177"
-         :jdk-version "1.8"
-         :include-files ["target/chatbot-0.1.0-SNAPSHOT-standalone.jar"]
-         :process-types {"web" "java -jar target/chatbot-0.1.0-SNAPSHOT-standalone.jar"}}
+          :jdk-version "1.8"
+          :include-files ["target/chatbot-0.1.0-SNAPSHOT-standalone.jar"]
+          :process-types {"web" "java -jar target/chatbot-0.1.0-SNAPSHOT-standalone.jar"}}
 ```
 
 You just need to customize the app-name on the highlighted line.
