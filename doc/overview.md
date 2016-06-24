@@ -167,6 +167,7 @@ fill in.
   function should verify that this is a valid category and retrieve a
   quote for that category.
 
+---
 ### Extension exercises
 
 * Calling `list-categories` every time we need to validate a category
@@ -304,6 +305,7 @@ Note that `token` above should match the `slack-token` defined
 implemented. What happens if you pass an invalid token? an unsupported
 command?
 
+---
 ### Extension exercises
 
 * Extend your command handler to parse the optional `:text` parameter.
