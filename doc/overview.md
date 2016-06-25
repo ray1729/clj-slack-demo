@@ -1,7 +1,16 @@
 # Writing a Chatbot with Clojure
 
-* Ray Miller
-* Jim Downing
+* Ray Miller - Data Engineer, Metail
+* Jim Downing - CTO, Metail
+
+## Before we begin: -
+
+* Please sign in with Jim so he can invite you to the Slack team we'll be using
+* Get online
+* You'll need: -
+  * Java 7 or 8
+  * Some kind of unix shell
+  * Text editor
 
 ---
 
@@ -38,7 +47,6 @@ Who has programmed in a language with higher order functions?
 Get online.
 
 TODO Check out how to increase text size in slides.
-TODO Sign in sheet for slack invite email addresses
 
 ---
 
@@ -126,6 +134,7 @@ function:
 
 We can now make an HTTP request and print the result:
 
+```clojure
 (pprint (http/get "http://quotes.rest/qod.json"))
 ```
 
@@ -169,7 +178,7 @@ We can now make an HTTP request and print the result:
 ## Exercises
 
 Open the file `src/chatbot/quotes.clj` in your favourite text editor.
-You should see three functions whose bodies hawe been left for you to
+You should see three functions whose bodies have been left for you to
 fill in.
 
 * A function `list-categories` to return the list of quote of
@@ -202,13 +211,26 @@ fill in.
 ## Posting messages to Slack
 
 ---
-### Posting messages to Slack 1/2
+### Posting messages to Slack 1/3: Setting up in Slack
 
 Configure an incoming WebHook:
 
 https://dev-summer-cb.slack.com/apps/manage/
 
-Make a note of the WebHook URL:
+Left nav: Custom integrations > main pane: Incoming webhooks > main pane: Add configuration
+
+Choose the #general channel and "Add Incoming Webhooks integration"
+
+Copy the WebHook URL into your buffer.
+
+
+Scroll down to Customize Name, and change it to e.g. {your name}-webhook
+
+---
+
+### Posting messages to Slack 2/3: Posting from the REPL
+
+Paste / yank webhook URL into your REPL.
 
 ```clojure
 (def webhook-url "https://hooks.slack.com/services/...")
@@ -221,12 +243,8 @@ Post a message to Slack:
                                       :content-type :json})
 ```
 
-???
-
-TODO Grab my changes from this morning.
-
 ---
-### Posting messages to Slack 2/2: Advanced message formatting
+### Posting messages to Slack 3/3: Advanced message formatting
 
 https://api.slack.com/docs/message-attachments
 
@@ -244,7 +262,7 @@ https://api.slack.com/docs/message-attachments
 ```
 
 ---
-## Exercise
+### Exercise
 
 * Use your `get-qod` function to retrieve a quote of the day, and
   post the resultant quote to Slack. *Hint: adding the prefix `>>>` to
@@ -252,6 +270,8 @@ https://api.slack.com/docs/message-attachments
 
 
 ---
+class:center,middle
+
 ## Custom slack commands
 
 ---
@@ -303,7 +323,7 @@ To handle a Slack command, we should:
 A walk through the skeleton web application.
 
 ---
-## Exercise
+### Exercise
 
 * Extend the skeleton application to implement a handler to process a
   Slack quote of the day command.
@@ -339,22 +359,29 @@ command?
     command.
 
 ---
-## Deploying to Heroku
+class:middle,center
+## Putting the pieces together
 
-- Install Heroku Toolbelt
-- Login and create app
-- Configure leiningen integration
-- Deploy and start app
+---
+### Putting the pieces together
+
+1. Setup with Heroku
+2. Login and create Heroku app
+3. Configure Slack command integration
+4. Configure leiningen for heroku integration
+5. Build, deploy and start the Heroku app
 
 ---
 
-### Heroku 1/5: Install Heroku Toolbelt
+### Pieces 1/5: Setup with Heroku
 
-https://toolbelt.heroku.com/
+If you don't use Heroku, create an account at heroku.com
+
+Then install the Heroku CLI https://toolbelt.heroku.com/
 
 ---
 
-### Heroku 2/5: Login and create app
+### Pieces 2/5: Login and create Heroku app
 ```bash
 $ heroku login
 Enter your Heroku credentials.
@@ -371,9 +398,24 @@ Git remote heroku added
 
 ---
 
-### Heroku 3/5: Configure leiningen integration
+### Pieces 3/5: Configure Slack command integration
 
-Most of this has already been done for you in project.clj
+1. https://dev-summer-cb.slack.com/apps/manage
+2. Left nav: Custom Integrations > main pane: Slash Commands > main pane: Add configuration
+3. Choose a command name that's unique to you. e.g. "/jim-qod". Click "Add Slash Command Integration"
+4. Scroll down to "Integration settings". Set URL to {your Heroku app base URL}/slack
+
+   e.g. https://vast-citadel-38177.herokuapp.com/slack
+
+5. Copy the Token to your buffer
+6. Customize the name to something unique to you.
+7. "Save Integration"
+
+---
+
+### Pieces 4/5: Configure leiningen for heroku integration
+
+Most of this has already been done for you in project.clj.
 
 ```clojure
  :plugins [[lein-ring "0.9.7"]
@@ -386,14 +428,11 @@ Most of this has already been done for you in project.clj
 
 You just need to customize the app-name on the highlighted line.
 
-???
-TODO: Would be good to get this out of project.clj
-
 ---
 
-### Deploy and start app
+### Pieces 5/5: Build, deploy and start the Heroku app
 
-Deploy:
+Build and deploy:
 ```bash
 lein ring uberjar
 lein heroku deploy-uberjar
@@ -411,9 +450,10 @@ https://vast-citadel-38177.herokuapp.com/status
 
 ---
 
-## Putting the pieces together
+## Try it!
 
-Create Slack command integration, use URL for your Heroku slack
-endpoint:
+Go to the Slack channel, and type your command!
 
-https://vast-citadel-38177.herokuapp.com/slack
+### If you enjoyed this...
+Come and work with us!
+http://metail.com/cambridge-jobs/
