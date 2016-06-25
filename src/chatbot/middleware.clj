@@ -2,14 +2,6 @@
   (:require [ring.util.response :refer [response status content-type charset]]
             [cheshire.core :as json]))
 
-(defn wrap-check-token
-  [handler slack-token]
-  (fn [request]
-    (if (= (get-in request [:params :token]) slack-token)
-      (handler request)
-      (-> (response "Invalid token")
-          (status 400)))))
-
 (defn wrap-json-response
   [handler]
   (fn [request]
