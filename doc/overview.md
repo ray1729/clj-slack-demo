@@ -62,6 +62,12 @@ the REPL:
 
 ```clojure
 (require '[clojure.repl :refer [doc source find-doc]])
+```
+
+We can now use these functions to query documentation and view the
+source of functions:
+
+```clojure
 (doc assoc)
 (source assoc)
 ```
@@ -110,10 +116,17 @@ lein repl
 ---
 ### Clojure as a REST client 2/5: Our first request
 
+Load the HTTP client library and (for convenience) a pretty-print
+function:
+
 ```clojure
-(require '[clj-http.client :as http] '[clojure.pprint :refer [pprint]])
-(def response (http/get "http://quotes.rest/qod.json"))
-(pprint response)
+(require '[clj-http.client :as http]
+         '[clojure.pprint :refer [pprint]])
+```
+
+We can now make an HTTP request and print the result:
+
+(pprint (http/get "http://quotes.rest/qod.json"))
 ```
 
 ---
@@ -122,7 +135,9 @@ lein repl
 
 ```clojure
 (def response (http/get "http://quotes.rest/qod.json" {:as :json}))
+
 (pprint response)
+
 (get-in response [:body :contents :quotes 0 :quote])
 ```
 
@@ -131,7 +146,9 @@ lein repl
 
 ```clojure
 (def categories (http/get "http://quotes.rest/qod/categories.json" {:as :json}))
+
 (get-in categories [:body :contents :categories])
+
 (pprint (http/get "http://quotes.rest/qod.json"
                   {:as :json :query-params {:category "art"}}))
 ```
@@ -141,6 +158,7 @@ lein repl
 
 ```clojure
 (def api-key "h7GmOyL2jnVBjDgNyoaEDAeF")
+
 (http/get "http://quotes.rest/qod.json"
           {:as :json
            :query-params {:category "life"}
@@ -151,15 +169,15 @@ lein repl
 ## Exercises
 
 Open the file `src/chatbot/quotes.clj` in your favourite text editor.
-There are three functions whose function body has been left for you to
+You should see three functions whose bodies hawe been left for you to
 fill in.
 
-* Write a function `list-categories` to return the list of quote of
+* A function `list-categories` to return the list of quote of
   the day categories.
 
-* Write a function `get-qod` to return a quote of the day.
+* A function `get-qod` to return a quote of the day.
 
-* Write a function `valid-qod-category?` that takes a string,
+* A function `valid-qod-category?` that takes a string,
   `category`, and returns `true` if this is a recognized category,
   otherwise `false`.
 
@@ -344,7 +362,7 @@ Email: adam@example.com
 Password (typing will be hidden):
 Authentication successful.
 
-$ cd ~/myapp
+$ cd clj-slack-demo
 $ heroku create
 Creating vast-citadel-38177... done, stack is cedar-14
 http://vast-citadel-38177.herokuapp.com/ | https://git.heroku.com/vast-citadel-38177.git
